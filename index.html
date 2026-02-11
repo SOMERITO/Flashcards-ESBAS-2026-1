@@ -2,626 +2,812 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CGBVP | Flip Master v12.1</title>
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ESBAS - Simulador Profesional</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
-        /* --- CORE VARIABLES (DISEÑO ROJO/DORADO) --- */
+        /* --- SYSTEM TOKENS --- */
         :root {
-            --brand-primary: #b71c1c; 
-            --brand-secondary: #ffb300;
-            --bg-main: #f0f2f5;
-            --bg-panel: #ffffff;
-            --text-dark: #1a1a1a;
-            --text-medium: #5f6368;
-            --text-light: #ffffff;
-            --mod1-color: #1565c0; 
-            --mod2-color: #2e7d32; 
-            --mod3-color: #e65100;
-            --success-color: #43a047;
-            --error-color: #e53935;
-            --shadow-card: 0 4px 12px rgba(0,0,0,0.08);
-            --border-radius: 12px;
-            --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+            --primary: #B91C1C;
+            --primary-dark: #991B1B;
+            --accent-gold: #D97706;
+            --accent-green: #059669;
+            --bg-body: #F3F4F6;
+            --bg-card: #FFFFFF;
+            --text-main: #111827;
+            --text-muted: #6B7280;
+            --radius: 12px;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        body {
-            background-color: var(--bg-main);
-            color: var(--text-dark);
-            font-family: 'Inter', sans-serif;
-            margin: 0; padding: 20px; min-height: 100vh;
-            overflow-x: hidden;
-        }
-        * { box-sizing: border-box; outline: none; user-select: none; }
-        h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg-body); color: var(--text-main); font-family: 'Inter', sans-serif; margin: 0; padding-bottom: 40px; }
+        button, input, textarea, select { font-family: inherit; outline: none; }
+        h1, h2, h3, h4 { margin: 0; }
+        svg { display: block; }
 
-        .container { max-width: 1050px; margin: 0 auto; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
 
-        /* --- NOTIFICACIONES --- */
-        #notificationArea {
-            position: fixed; top: 20px; right: 20px; z-index: 2000;
-            display: flex; flex-direction: column; gap: 10px;
-        }
-        .toast {
-            background: white; padding: 15px 20px; border-radius: 8px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
-            display: flex; align-items: center; gap: 12px;
-            min-width: 300px; border-left: 5px solid #333;
-            animation: slideInToast 0.4s var(--transition-smooth);
-        }
-        .toast.success { border-left-color: var(--success-color); }
-        .toast.error { border-left-color: var(--error-color); }
-        .toast-content strong { display: block; font-size: 0.9rem; }
-        .toast-content span { font-size: 0.85rem; color: #666; }
+        /* --- ANIMACIONES --- */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes popIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
-        /* --- HEADER --- */
-        .top-bar {
-            background: linear-gradient(145deg, var(--brand-primary), #8e0000);
-            color: var(--text-light);
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 30px; padding: 15px 30px;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow-card);
+        /* --- NAVBAR --- */
+        .navbar { 
+            background: var(--bg-card); border-bottom: 1px solid #E5E7EB; padding: 12px 0; 
+            position: sticky; top: 0; z-index: 50; box-shadow: var(--shadow-sm);
+            animation: slideUp 0.5s ease;
         }
-        .brand h1 { margin: 0; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 500; }
-        .sync-status { font-family: 'Roboto Mono'; font-size: 0.75rem; color: rgba(255,255,255,0.85); display: flex; align-items: center; gap: 8px; }
-        .sync-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.3); transition: 0.3s; }
-        .sync-dot.active { background: var(--brand-secondary); box-shadow: 0 0 12px var(--brand-secondary); animation: blink 1s infinite; }
-        .sync-dot.online { background: #4caf50; box-shadow: 0 0 8px #4caf50; }
-        .sync-dot.error { background: #f44336; }
+        .nav-inner { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+        
+        .brand { display: flex; flex-direction: column; line-height: 1.1; cursor: default; }
+        .brand-main { font-weight: 800; font-size: 1.1rem; color: var(--primary); letter-spacing: -0.5px; }
+        .brand-sub { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; letter-spacing: 0.5px; }
 
+        .nav-items { display: flex; gap: 8px; align-items: center; }
+        
         /* --- BOTONES --- */
-        .btn {
-            padding: 10px 20px; border-radius: 8px; cursor: pointer; border: none;
-            font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.9rem;
-            display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;
+        .btn { 
+            padding: 9px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; 
+            cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 8px; 
+            transition: var(--transition); position: relative; overflow: hidden; justify-content: center;
         }
-        .top-bar .btn { background: rgba(255,255,255,0.15); color: var(--text-light); }
-        .top-bar .btn:hover { background: rgba(255,255,255,0.25); transform: translateY(-2px); }
-        .btn-primary { background: var(--brand-primary); color: white; box-shadow: 0 4px 12px rgba(183, 28, 28, 0.3); }
-        .btn-primary:hover { background: #c62828; transform: translateY(-2px); }
-        .btn-secondary { background: var(--bg-main); color: var(--text-medium); border: 1px solid #e0e0e0; }
-        .btn-secondary:hover { background: #e3e8ed; color: var(--text-dark); }
-        .btn-icon { padding: 8px; border-radius: 50%; background: transparent; color: var(--text-medium); transition: 0.2s; border:none; cursor: pointer; }
-        .btn-icon:hover { background: #e0e0e0; color: var(--brand-primary); }
+        .btn:active { transform: scale(0.97); }
+
+        .btn-secondary { background: #E5E7EB; color: #374151; }
+        .btn-secondary:hover { background: #D1D5DB; color: #111; }
+        
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 2px 4px rgba(185, 28, 28, 0.2); }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
+        
+        .btn-icon { padding: 8px; border-radius: 50%; width: 36px; height: 36px; background: transparent; color: var(--text-muted); }
+        .btn-icon:hover { background: #F3F4F6; color: var(--primary); transform: rotate(15deg); }
+        
+        .btn-mega {
+            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+            color: white; box-shadow: 0 4px 6px rgba(217, 119, 6, 0.3);
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .btn-mega:hover { box-shadow: 0 8px 15px rgba(217, 119, 6, 0.4); transform: translateY(-1px); }
 
         /* --- VISTAS --- */
-        .view { display: none; opacity: 0; animation: fadeIn 0.3s var(--transition-smooth) forwards; }
+        .view { display: none; }
         .view.active { display: block; }
-        .card-panel { background: var(--bg-panel); border-radius: var(--border-radius); box-shadow: var(--shadow-card); padding: 30px; border-top: 4px solid var(--brand-primary); }
 
-        /* --- DASHBOARD --- */
-        .stats-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
-        .stat-box { background: var(--bg-panel); padding: 20px; border-radius: var(--border-radius); text-align: center; box-shadow: var(--shadow-card); position: relative; overflow: hidden; }
-        .stat-box::after { content:''; position:absolute; bottom:0; left:0; width:100%; height:4px; background: currentColor; opacity: 0.8; }
-        .stat-num { font-size: 2rem; font-weight: 700; display: block; }
-        .stat-label { font-size: 0.8rem; color: var(--text-medium); text-transform: uppercase; font-weight: 600; }
+        /* --- DASHBOARD STATS --- */
+        .stats-bar {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px;
+            animation: fadeIn 0.5s ease;
+        }
+        .stat-item {
+            background: white; padding: 15px; border-radius: 10px; border: 1px solid #E5E7EB;
+            display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow-sm);
+        }
+        .stat-info { text-align: left; }
+        .stat-num { display: block; font-size: 1.4rem; font-weight: 800; color: var(--text-main); line-height: 1; }
+        .stat-lbl { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-top: 4px; }
+        .stat-icon { color: #D1D5DB; width: 24px; height: 24px; }
 
-        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+        /* --- GRID TARJETAS --- */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
+
+        .card-wrapper { 
+            height: 260px; perspective: 1000px; position: relative; 
+            animation: slideUp 0.5s ease backwards;
+        }
         
-        /* --- ESTILOS 3D FLIP CARD --- */
-        .flashcard-wrapper {
-            background-color: transparent;
-            width: 100%;
-            height: 250px; /* Altura fija necesaria para 3D */
-            perspective: 1000px; /* Profundidad 3D */
+        .card-inner {
+            position: relative; width: 100%; height: 100%;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d; border-radius: var(--radius);
+            box-shadow: var(--shadow-md); background: var(--bg-card);
+        }
+        .card-wrapper:not(.hover-blocked):hover .card-inner { transform: rotateY(180deg); }
+
+        .card-face {
+            position: absolute; width: 100%; height: 100%;
+            backface-visibility: hidden; border-radius: var(--radius);
+            padding: 25px; padding-bottom: 60px;
             display: flex; flex-direction: column;
+            overflow-y: auto; scrollbar-width: thin;
         }
-
-        .flip-box {
-            position: relative;
-            width: 100%;
-            height: 200px; /* Altura de la parte giratoria */
-            text-align: center;
-            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Rebote suave */
-            transform-style: preserve-3d;
-            box-shadow: var(--shadow-card);
-            border-radius: 12px;
-        }
-
-        .flashcard-wrapper:hover .flip-box {
-            transform: rotateY(180deg);
-        }
-
-        .flip-front, .flip-back {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            -webkit-backface-visibility: hidden; /* Safari */
-            backface-visibility: hidden;
-            border-radius: 12px;
-            padding: 20px;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            border: 1px solid #eee;
-        }
-
-        /* Cara Frontal */
-        .flip-front {
-            background-color: #fff;
-            color: black;
-            border-left: 5px solid #ccc; /* Color por defecto */
-        }
+        .face-front { background: var(--bg-card); border: 1px solid #E5E7EB; }
+        .face-back { background: #1F2937; color: white; transform: rotateY(180deg); align-items: center; justify-content: center; text-align: center; }
         
-        /* Cara Trasera */
-        .flip-back {
-            background-color: var(--brand-primary); /* Color por defecto */
-            color: white;
-            transform: rotateY(180deg);
+        .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+        .card-badge { 
+            font-size: 0.65rem; font-weight: 700; text-transform: uppercase; 
+            padding: 4px 8px; border-radius: 6px; letter-spacing: 0.5px;
+            display: flex; align-items: center; gap: 6px;
         }
-
-        .action-bar {
-            height: 40px; margin-top: 10px;
-            background: #fff; border-radius: 8px;
-            display: flex; align-items: center; justify-content: flex-end;
-            padding: 0 10px; gap: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-
-        /* Textos */
-        .meta-badge { font-family: 'Roboto Mono', monospace; font-size: 0.7rem; padding: 4px 10px; border-radius: 20px; background: #f0f0f0; color: #555; font-weight: 600; display: inline-block; margin-bottom: 5px;}
-        .q-text { font-weight: 700; font-size: 1.1rem; line-height: 1.4; color: var(--text-dark); }
-        .a-label { text-transform: uppercase; font-size: 0.7rem; letter-spacing: 2px; opacity: 0.8; margin-bottom: 10px; }
-        .a-text { font-family: 'Oswald', sans-serif; font-size: 1.4rem; line-height: 1.3; font-weight: 500; }
-
-        /* --- SELECTOR MÓDULOS --- */
-        .mod-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
-        .mod-card { background: var(--bg-main); border: 2px solid transparent; border-radius: 10px; padding: 15px; cursor: pointer; transition: 0.2s; text-align: center; }
-        .mod-card.selected { border-color: var(--brand-primary); background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .mod-card[data-mod="m1"].selected { border-color: var(--mod1-color); background: #e3f2fd; }
-        .mod-card[data-mod="m2"].selected { border-color: var(--mod2-color); background: #e8f5e9; }
-        .mod-card[data-mod="m3"].selected { border-color: var(--mod3-color); background: #fff3e0; }
-        .mod-title { font-weight: 700; font-family: 'Oswald'; font-size: 1.1rem; display: block; }
-        .mod-desc { font-size: 0.8rem; color: var(--text-medium); }
+        .card-lec { font-family: monospace; font-size: 0.75rem; color: var(--text-muted); background: #F3F4F6; padding: 2px 6px; border-radius: 4px; }
+        .card-q { font-weight: 600; font-size: 1.05rem; line-height: 1.5; color: #111; }
         
-        .lesson-switch-container { background: #fafafa; border: 1px solid #eee; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
-        .switch-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
-        .toggle-switch { position: relative; display: inline-block; width: 50px; height: 26px; }
-        .toggle-switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--brand-primary); }
-        input:checked + .slider:before { transform: translateX(24px); }
-        .lesson-inputs { display: flex; gap: 15px; max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; opacity: 0; }
-        .lesson-inputs.show { max-height: 100px; opacity: 1; overflow: visible; }
-
-        /* --- FORMULARIOS --- */
-        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.95rem; }
-        input, textarea, select { width: 100%; background: var(--bg-panel); border: 1px solid #e0e0e0; padding: 14px; border-radius: 8px; font-family: 'Inter'; font-size: 1rem; margin-bottom: 20px; transition: 0.2s; }
-        input:focus, textarea:focus, select:focus { border-color: var(--brand-primary); box-shadow: 0 0 0 3px rgba(183, 28, 28, 0.1); }
-        .row-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
-        .custom-radio { appearance: none; width: 24px; height: 24px; border: 2px solid #bdbdbd; border-radius: 50%; cursor: pointer; margin-right: 12px; transition: 0.2s; flex-shrink: 0; position: relative; top: 2px; }
-        .custom-radio:checked { border-color: var(--brand-primary); background: var(--brand-primary); box-shadow: inset 0 0 0 4px white; }
-
-        /* --- SIMULADOR & RESULTADOS --- */
-        .sim-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        .sim-badge { background: var(--brand-primary); color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
-        .sim-option {
-            background: var(--bg-panel); padding: 20px 25px; margin-bottom: 15px; border-radius: 12px;
-            cursor: pointer; transition: 0.2s; display: flex; gap: 20px; border: 2px solid transparent;
-            box-shadow: var(--shadow-card); font-weight: 500; align-items: center;
+        .card-actions {
+            position: absolute; bottom: 15px; right: 15px; z-index: 100;
+            display: flex; gap: 8px;
         }
-        .sim-option:hover { transform: translateX(8px); border-color: var(--brand-primary); }
-        .sim-option-letter { background: var(--bg-main); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: 700; color: var(--text-medium); }
-        .sim-option:hover .sim-option-letter { background: var(--brand-primary); color: white; }
-        .sim-option.correct { border-color: var(--success-color); background: #e8f5e9; color: #1b5e20; }
-        .sim-option.wrong { border-color: var(--error-color); background: #ffebee; color: #c62828; animation: shake 0.4s; }
+        .action-icon {
+            width: 34px; height: 34px; border-radius: 50%; background: white; border: 1px solid #E5E7EB;
+            display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: 0.2s;
+        }
+        .action-icon:hover { transform: scale(1.1); color: var(--primary); border-color: var(--primary); }
+        .action-icon.delete:hover { color: #DC2626; border-color: #DC2626; }
 
-        .result-card { background: var(--bg-panel); border-radius: 20px; padding: 40px; box-shadow: 0 15px 50px rgba(0,0,0,0.1); text-align: center; max-width: 600px; margin: 0 auto; position: relative; overflow: hidden; }
-        .progress-ring { width: 160px; height: 160px; margin: 0 auto 20px; transform: rotate(-90deg); }
-        .progress-ring__circle { stroke-dasharray: 440; stroke-dashoffset: 440; transition: stroke-dashoffset 1.5s ease-out, stroke 0.3s; transform-origin: 50% 50%; }
-        .score-display { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; }
-        .score-number { font-size: 3rem; font-weight: 800; color: var(--text-dark); line-height: 1; }
-        .score-text { font-size: 0.8rem; color: var(--text-medium); font-weight: 600; text-transform: uppercase; }
-        .result-title { font-size: 1.8rem; margin: 0 0 10px 0; color: var(--text-dark); opacity: 0; animation: slideUp 0.5s forwards 0.5s; }
-        .result-msg { color: var(--text-medium); margin-bottom: 30px; opacity: 0; animation: slideUp 0.5s forwards 0.7s; }
-        .result-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px; opacity: 0; animation: slideUp 0.5s forwards 0.9s; }
-        .res-mini-box { background: #f5f5f5; padding: 15px; border-radius: 12px; }
-        .res-mini-val { display: block; font-size: 1.4rem; font-weight: 700; color: var(--text-dark); }
-        .res-mini-lbl { font-size: 0.7rem; color: #666; text-transform: uppercase; }
-        .confetti { position: absolute; width: 10px; height: 10px; background-color: #f2d74e; animation: confetti-fall 3s linear infinite; }
+        /* --- FORMULARIO --- */
+        .form-box { 
+            background: var(--bg-card); border-radius: 16px; padding: 30px; 
+            max-width: 650px; margin: 0 auto; box-shadow: var(--shadow-md); 
+            border: 1px solid #E5E7EB; animation: slideUp 0.3s ease;
+        }
+        .input { width: 100%; padding: 12px; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 0.95rem; background: #F9FAFB; transition: 0.2s; }
+        .input:focus { background: white; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.1); }
+        .opt-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
 
-        /* --- MODAL --- */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 999; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
-        .modal-overlay.open { display: flex; animation: fadeIn 0.2s; }
-        .mission-panel { background: var(--bg-panel); width: 90%; max-width: 500px; padding: 40px; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes slideInToast { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes fadeOutToast { to { opacity: 0; transform: translateX(10px); } }
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes confetti-fall { 0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+        /* --- MODALES --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 2000;
+            display: none; align-items: center; justify-content: center;
+            backdrop-filter: blur(4px); opacity: 0; transition: opacity 0.2s;
+        }
+        .modal-overlay.open { display: flex; opacity: 1; }
         
-        .loader { display: none; border: 3px solid rgba(255,255,255,0.3); border-top: 3px solid currentColor; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        svg { width: 20px; height: 20px; fill: currentColor; }
+        .modal-box {
+            background: white; width: 90%; max-width: 500px;
+            padding: 30px; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            text-align: center; transform: scale(0.95); transition: transform 0.2s;
+        }
+        .modal-overlay.open .modal-box { transform: scale(1); }
+        
+        /* SIMULADOR SELECCIÓN */
+        .sim-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; margin-bottom: 20px; }
+        .sim-option-box {
+            padding: 15px; border: 2px solid #E5E7EB; border-radius: 10px;
+            cursor: pointer; transition: 0.2s; background: #FAFAFA; text-align: left;
+            display: flex; flex-direction: column; gap: 5px;
+        }
+        .sim-option-box:hover { border-color: #D1D5DB; background: #F3F4F6; }
+        .sim-option-box.selected { border-color: var(--primary); background: #FEF2F2; box-shadow: 0 0 0 2px rgba(185, 28, 28, 0.1); }
+        .sim-opt-title { font-weight: 700; font-size: 0.9rem; color: var(--text-main); }
+        .sim-opt-desc { font-size: 0.75rem; color: var(--text-muted); }
+
+        /* BOTONES DE LECCIÓN (NUEVO) */
+        .lesson-grid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 15px; animation: popIn 0.3s ease; }
+        .lesson-btn {
+            width: 40px; height: 40px; border-radius: 8px; border: 1px solid #E5E7EB;
+            background: white; color: var(--text-main); font-weight: 600; font-size: 0.9rem;
+            cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center;
+        }
+        .lesson-btn:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-2px); }
+        .lesson-btn.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 6px rgba(185, 28, 28, 0.3); }
+        .lesson-btn.all-btn { width: auto; padding: 0 15px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* SIMULADOR PREGUNTAS */
+        .sim-container { max-width: 700px; margin: 0 auto; animation: slideUp 0.4s ease; }
+        .option-card {
+            background: white; padding: 18px; border-radius: 10px; border: 1px solid #E5E7EB;
+            margin-bottom: 12px; cursor: pointer; display: flex; align-items: center; gap: 15px;
+            transition: 0.2s;
+        }
+        .option-card:hover { border-color: #9CA3AF; background: #F9FAFB; transform: translateX(4px); }
+        .option-card.correct { border-color: var(--accent-green); background: #ECFDF5; color: #064E3B; }
+        .option-card.wrong { border-color: var(--primary); background: #FEF2F2; color: #7F1D1D; }
+
+        /* RESULTADOS */
+        .res-circle { 
+            width: 120px; height: 120px; border-radius: 50%; border: 8px solid #F3F4F6; margin: 0 auto 20px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .res-score { font-size: 2.2rem; font-weight: 800; color: var(--text-main); line-height: 1; }
+        
+        /* TOAST */
+        .toast { 
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px); 
+            background: #1F2937; color: white; padding: 12px 24px; border-radius: 30px; 
+            z-index: 3000; opacity: 0; pointer-events: none; transition: 0.3s; 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2); font-size: 0.9rem;
+        }
+        .toast.show { opacity: 1; transform: translateY(0) translateX(-50%); }
+        .toast.success { background: #059669; }
+        .toast.error { background: #B91C1C; }
     </style>
 </head>
 <body>
 
-<div id="notificationArea"></div>
-<div id="confettiArea" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:100; overflow:hidden; display:none;"></div>
+<nav class="navbar">
+    <div class="container nav-inner">
+        <div class="brand">
+            <span class="brand-main">ESBAS</span>
+            <span class="brand-sub">SIMULADOR DE EXÁMENES</span>
+        </div>
+        <div class="nav-items">
+            <button onclick="showList()" class="btn btn-secondary">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                Base
+            </button>
+            <button onclick="showCreate()" class="btn btn-primary">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"></path></svg>
+                Nuevo
+            </button>
+            <button onclick="openSimModal()" class="btn btn-mega">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Simulacro
+            </button>
+            <button onclick="openConfig()" class="btn btn-icon" title="Configurar">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            </button>
+        </div>
+    </div>
+</nav>
 
 <div class="container">
-    <div class="top-bar">
-        <div class="brand">
-            <h1>CGBVP <span style="color:var(--brand-secondary); font-weight: 400;">ACADEMY</span></h1>
-            <div class="sync-status">
-                <div id="syncDot" class="sync-dot"></div>
-                <span id="syncText">DESCONECTADO</span>
-            </div>
-        </div>
-        <nav style="display: flex; gap: 12px;">
-            <button onclick="showList()" class="btn"><svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg> Base</button>
-            <button onclick="showCreate()" class="btn"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg> Nuevo</button>
-            <button onclick="openMissionModal()" id="nav-play-btn" class="btn" style="background:rgba(255, 179, 0, 0.2); color:var(--brand-secondary);"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Simulacro</button>
-        </nav>
-    </div>
+    <div id="toast" class="toast"><span id="toastMsg">Mensaje</span></div>
 
-    <div id="loadingView" style="text-align:center; padding: 100px 20px;">
-        <div class="loader" style="display:block; margin: 0 auto 20px; width: 50px; height: 50px; color: var(--brand-primary); border-color: #e0e0e0;"></div>
-        <h2 style="color:var(--text-dark);">CONECTANDO...</h2>
-    </div>
-
-    <div id="missionModal" class="modal-overlay" onclick="if(event.target===this) closeMissionModal()">
-        <div class="mission-panel">
-            <h2 style="margin-top:0; margin-bottom: 25px; text-align: center;">Configurar Misión</h2>
-            <label style="margin-bottom: 10px;">1. Seleccione Objetivo</label>
-            <div class="mod-grid">
-                <div class="mod-card selected" onclick="selectSimModule('all', this)" data-mod="all"><span class="mod-title">General</span><span class="mod-desc">Todos</span></div>
-                <div class="mod-card" onclick="selectSimModule('m1', this)" data-mod="m1"><span class="mod-title" style="color:var(--mod1-color)">Incendios</span><span class="mod-desc">Módulo 1</span></div>
-                <div class="mod-card" onclick="selectSimModule('m2', this)" data-mod="m2"><span class="mod-title" style="color:var(--mod2-color)">Médicos</span><span class="mod-desc">Módulo 2</span></div>
-                <div class="mod-card" onclick="selectSimModule('m3', this)" data-mod="m3"><span class="mod-title" style="color:var(--mod3-color)">Matpel</span><span class="mod-desc">Módulo 3</span></div>
-            </div>
-            <div class="lesson-switch-container">
-                <div class="switch-row">
-                    <label style="margin:0; font-weight: 500;">Incluir todas las lecciones</label>
-                    <label class="toggle-switch"><input type="checkbox" id="allLessonsSwitch" checked onchange="toggleLessonInputs()"><span class="slider"></span></label>
-                </div>
-                <div id="lessonInputsArea" class="lesson-inputs">
-                    <div style="flex:1"><label style="font-size:0.8rem; margin-bottom:5px;">Desde Lección</label><input type="number" id="simMinLesson" placeholder="Ej: 1" style="margin:0; padding:10px;"></div>
-                    <div style="flex:1"><label style="font-size:0.8rem; margin-bottom:5px;">Hasta Lección</label><input type="number" id="simMaxLesson" placeholder="Ej: 5" style="margin:0; padding:10px;"></div>
-                </div>
-            </div>
-            <button onclick="launchSimulation()" class="btn btn-primary" style="width:100%; justify-content:center; padding: 16px; font-size: 1.1rem;">INICIAR SIMULACRO</button>
-        </div>
+    <div id="loader" style="text-align:center; padding: 80px 0;">
+        <div style="width:40px; height:40px; border:4px solid #E5E7EB; border-top-color:var(--primary); border-radius:50%; animation: spin 1s infinite linear; margin:0 auto;"></div>
+        <p style="color:#9CA3AF; margin-top:20px;">Iniciando sistema...</p>
     </div>
 
     <div id="listView" class="view">
         <div class="stats-bar">
-            <div class="stat-box" style="color: var(--mod1-color);"><span class="stat-num" id="statM1">0</span><span class="stat-label">Incendios</span></div>
-            <div class="stat-box" style="color: var(--mod2-color);"><span class="stat-num" id="statM2">0</span><span class="stat-label">Médicos</span></div>
-            <div class="stat-box" style="color: var(--mod3-color);"><span class="stat-num" id="statM3">0</span><span class="stat-label">Matpel</span></div>
+            <div class="stat-item">
+                <div class="stat-info"><span class="stat-num" id="statTotal">0</span><span class="stat-lbl">Total Preguntas</span></div>
+                <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+            </div>
+            <div class="stat-item">
+                <div class="stat-info"><span class="stat-num" id="statM1">0</span><span class="stat-lbl" id="statLblM1">M1</span></div>
+                <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"></path></svg>
+            </div>
+            <div class="stat-item">
+                <div class="stat-info"><span class="stat-num" id="statM2">0</span><span class="stat-lbl" id="statLblM2">M2</span></div>
+                <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+            </div>
         </div>
-        <div id="cardsContainer" class="card-grid"></div>
-        <div id="emptyState" style="text-align:center; padding: 80px 20px; display:none;"><h3>Base de datos vacía</h3><p style="color:#666;">Cree el primer registro.</p></div>
-    </div>
 
-    <div id="createView" class="view">
-        <div class="card-panel" style="max-width:750px; margin:0 auto;">
-            <h2 style="margin-top:0; margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 15px;">Expediente Técnico</h2>
-            <div class="row-2">
-                <div><label>Módulo</label><select id="moduleSelect"><option value="m1">M1: Lucha Contra Incendios</option><option value="m2">M2: Atención Pre-Hospitalaria</option><option value="m3">M3: Matpel / Rescate</option></select></div>
-                <div><label>Lección</label><input type="number" id="lessonInput" placeholder="#" min="1"></div>
-            </div>
-            <label>Pregunta</label><textarea id="questionInput" rows="3" placeholder="Interrogante..."></textarea>
-            <label style="margin-top: 20px;">Alternativas (Marque la correcta)</label>
-            <div id="optionsList" style="background: #f9f9f9; padding: 20px; border-radius: 12px; border: 1px solid #eee;"></div>
-            <button onclick="addOptionInput()" class="btn btn-secondary" style="width:100%; margin-top:15px; justify-content:center;">+ Añadir Alternativa</button>
-            <div style="display:flex; gap:20px; margin-top:40px; padding-top: 20px; border-top: 1px solid #eee;">
-                <button onclick="saveCard()" id="btnSave" class="btn btn-primary" style="flex:2; justify-content:center; padding: 14px;"><span class="loader" id="saveLoader" style="color:white; margin:0; margin-right:10px;"></span> <span id="saveText">Guardar Registro</span></button>
-                <button onclick="showList()" class="btn btn-secondary" style="flex:1; justify-content:center; padding: 14px;">Cancelar</button>
-            </div>
+        <div class="grid" id="cardGrid"></div>
+        
+        <div id="emptyMsg" style="text-align:center; padding: 60px; display:none;">
+            <h3 style="color:#374151;">Sin registros</h3>
+            <p style="color:#9CA3AF;">Base de datos vacía.</p>
         </div>
     </div>
 
-    <div id="studyView" class="view">
-        <div class="card-panel" style="max-width:850px; margin:0 auto; padding: 50px;">
-            <div class="sim-header">
-                <span id="simBadge" class="sim-badge">Módulo ?</span>
-                <div style="display:flex; align-items:center; gap:15px;">
-                    <span style="font-family:'Roboto Mono'; font-size:0.9rem; color:var(--text-medium);" id="simProgressText">0/0</span>
-                    <div style="width:150px; height:8px; background:#e0e0e0; border-radius:10px; overflow:hidden;"><div id="progressBar" style="height:100%; background: var(--brand-secondary); width:0%; transition: width 0.5s;"></div></div>
+    <div id="formView" class="view" style="padding-top: 40px;">
+        <div class="form-box">
+            <div class="form-header" style="margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #F3F4F6; display: flex; justify-content: space-between; align-items: center;">
+                <div class="form-title" id="formTitle" style="font-size: 1.25rem; font-weight: 700;">Registro</div>
+                <div id="formBadge" style="font-size:0.75rem; background:#ECFDF5; color:#065F46; padding:4px 10px; border-radius:20px;">NUEVO</div>
+            </div>
+            <div class="input-group" style="display:grid; grid-template-columns: 2fr 1fr; gap:15px; margin-bottom:20px;">
+                <div>
+                    <label class="label">Módulo</label>
+                    <select id="inpMod" class="input"></select>
+                </div>
+                <div>
+                    <label class="label">Lección</label>
+                    <input type="number" id="inpLec" class="input" placeholder="#">
                 </div>
             </div>
-            <div id="studyArea"></div>
-            <div id="controlsArea" style="margin-top:40px; display:flex; justify-content:flex-end; gap: 20px; visibility:hidden; opacity: 0; transition: opacity 0.3s;">
-                <button onclick="finishSimulation()" class="btn btn-secondary">Finalizar</button>
-                <button onclick="nextCard()" class="btn btn-primary">Siguiente ></button>
+            <div class="input-group" style="margin-bottom:20px;">
+                <label class="label">Pregunta</label>
+                <textarea id="inpQ" class="input" rows="3" placeholder="Planteamiento..."></textarea>
+            </div>
+            <div class="input-group" style="margin-bottom:20px;">
+                <label class="label">Alternativas</label>
+                <div id="optList" style="background:#F9FAFB; padding:15px; border-radius:8px; border:1px solid #E5E7EB;"></div>
+                <button onclick="addOpt()" class="btn btn-secondary" style="width:100%; margin-top:10px; background:white; border:1px dashed #D1D5DB;">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"></path></svg>
+                    Agregar Opción
+                </button>
+            </div>
+            <div style="display:flex; gap:15px; margin-top:30px;">
+                <button onclick="saveData()" id="btnSave" class="btn btn-primary" style="flex:1;">Guardar</button>
+                <button onclick="showList()" class="btn btn-secondary">Cancelar</button>
             </div>
         </div>
     </div>
 
-    <div id="resultsView" class="view">
-        <div class="result-card">
-            <div style="position:relative; width:160px; height:160px; margin:0 auto 20px;">
-                <svg class="progress-ring" width="160" height="160">
-                    <circle class="progress-ring__circle" id="resRing" stroke="#eee" stroke-width="12" fill="transparent" r="70" cx="80" cy="80" />
-                </svg>
-                <div class="score-display">
-                    <span class="score-number" id="resScore">0%</span>
+    <div id="simView" class="view" style="padding-top: 40px;">
+        <div class="sim-container">
+            <div style="display:flex; justify-content:space-between; margin-bottom:20px; align-items:center;">
+                <span id="simTag" style="background:#333; color:white; padding:4px 10px; border-radius:6px; font-size:0.8rem; font-weight:700;">EXAMEN</span>
+                <span id="simCount" style="color:#6B7280; font-family:monospace;">1/10</span>
+            </div>
+            <h2 id="simQ" style="font-size:1.5rem; margin-bottom:30px; color:#111;">...</h2>
+            <div id="simOpts"></div>
+            <div id="simNext" style="text-align:right; margin-top:30px; display:none;">
+                <button onclick="nextSim()" class="btn btn-primary">
+                    Siguiente
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </button>
+            </div>
+            <button onclick="showList()" class="btn btn-secondary" style="margin-top:50px;">Salir</button>
+        </div>
+    </div>
+
+    <div id="resultView" class="view" style="padding-top: 40px;">
+        <div class="form-box" style="text-align:center; max-width: 500px;">
+            <h2 style="margin-bottom: 25px;">Resultados</h2>
+            <div class="res-circle" id="resCircle">
+                <span class="res-score" id="finalScore">0%</span>
+                <span style="font-size:0.75rem; color:#6B7280; text-transform:uppercase;">Puntaje</span>
+            </div>
+            <p id="resMsg" style="color:var(--text-muted); font-weight:500;">...</p>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin:30px 0;">
+                <div style="background:#F0FDF4; padding:15px; border-radius:10px;">
+                    <span style="display:block; font-size:1.5rem; font-weight:700; color:#166534;" id="resOk">0</span>
+                    <span style="font-size:0.7rem; text-transform:uppercase; color:#166534;">Correctas</span>
+                </div>
+                <div style="background:#FEF2F2; padding:15px; border-radius:10px;">
+                    <span style="display:block; font-size:1.5rem; font-weight:700; color:#991B1B;" id="resFail">0</span>
+                    <span style="font-size:0.7rem; text-transform:uppercase; color:#991B1B;">Incorrectas</span>
                 </div>
             </div>
-            <h2 class="result-title" id="resTitle">¡Resultado!</h2>
-            <p class="result-msg" id="resMsg">Análisis completado.</p>
-            <div class="result-stats-grid">
-                <div class="res-mini-box"><span class="res-mini-val" id="resTotal">0</span><span class="res-mini-lbl">Total</span></div>
-                <div class="res-mini-box"><span class="res-mini-val" id="resCorrect" style="color:var(--success-color)">0</span><span class="res-mini-lbl">Aciertos</span></div>
-                <div class="res-mini-box"><span class="res-mini-val" id="resWrong" style="color:var(--error-color)">0</span><span class="res-mini-lbl">Errores</span></div>
+            <div id="resAdvice" style="background:#EFF6FF; color:#1E40AF; padding:15px; border-radius:8px; font-size:0.9rem; margin-bottom:25px; border:1px solid #DBEAFE;"></div>
+            <button onclick="showList()" class="btn btn-primary" style="width:100%;">Finalizar</button>
+        </div>
+    </div>
+</div>
+
+<div id="configModal" class="modal-overlay">
+    <div class="modal-box">
+        <h2 style="margin-top:0;">Renombrar Módulos</h2>
+        <p style="color:#6B7280; margin-bottom:20px;">Personaliza las etiquetas</p>
+        <div style="text-align:left; margin-bottom:15px;">
+            <label class="label">Módulo 1</label>
+            <input type="text" id="cfgM1" class="input">
+        </div>
+        <div style="text-align:left; margin-bottom:15px;">
+            <label class="label">Módulo 2</label>
+            <input type="text" id="cfgM2" class="input">
+        </div>
+        <div style="text-align:left; margin-bottom:25px;">
+            <label class="label">Módulo 3</label>
+            <input type="text" id="cfgM3" class="input">
+        </div>
+        <button onclick="saveConfig()" class="btn btn-primary" style="width:100%;">Guardar Cambios</button>
+    </div>
+</div>
+
+<div id="simModal" class="modal-overlay">
+    <div class="modal-box">
+        <h2 style="margin-top:0;">Configurar Simulacro</h2>
+        <p style="color:#6B7280; margin-bottom:20px;">1. Selecciona el Módulo</p>
+        
+        <div class="sim-grid">
+            <div class="sim-option-box" onclick="selectSimMode('all', this)" style="grid-column: span 2;">
+                <span class="sim-opt-title">Repaso General</span>
+                <span class="sim-opt-desc">Mezcla de todo</span>
             </div>
-            <button onclick="showList()" class="btn btn-primary" style="width:100%; justify-content:center; padding: 15px; opacity: 0; animation: slideUp 0.5s forwards 1.1s;">REGRESAR A BASE</button>
+            <div class="sim-option-box" onclick="selectSimMode('m1', this)">
+                <span class="sim-opt-title" id="lblSimM1">M1</span>
+            </div>
+            <div class="sim-option-box" onclick="selectSimMode('m2', this)">
+                <span class="sim-opt-title" id="lblSimM2">M2</span>
+            </div>
+            <div class="sim-option-box" onclick="selectSimMode('m3', this)">
+                <span class="sim-opt-title" id="lblSimM3">M3</span>
+            </div>
+        </div>
+
+        <div id="lessonSelectorBox" style="text-align:left; margin-top:20px; opacity:0.5; pointer-events:none; transition:0.3s;">
+            <label class="label">2. Selecciona Lección <span style="font-weight:400; color:#9CA3AF;">(Opcional)</span></label>
+            <div id="lessonButtonsContainer" class="lesson-grid">
+                </div>
+        </div>
+        
+        <div style="margin-top:25px; display:flex; gap:10px;">
+            <button onclick="startSimAction()" class="btn btn-primary" style="flex:1;">INICIAR EXAMEN</button>
+            <button onclick="closeSimModal()" class="btn btn-secondary">Cancelar</button>
         </div>
     </div>
 </div>
 
 <script>
-    // --- CREDENCIALES CORREGIDAS ---
-    const BIN_ID = '696a7f22ae596e708fe10d1b'; // ID Correcto
+    const BIN_ID = '696a7f22ae596e708fe10d1b';
     const API_KEY = '$2a$10$7PwFegDVLzoS8bJTQPdA7.27bk7D4odCTFnynWW1NkB5H6.PBt.nm';
-    const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
-
-    let database = [];
-    let session = { queue: [], index: 0, score: 0 };
+    
+    let db = [];
     let editId = null;
-    let currentSimMod = 'all';
+    let moduleNames = JSON.parse(localStorage.getItem('esbas_modules')) || { m1: "Incendios", m2: "Médicos", m3: "Matpel" };
+    
+    // Variables de Simulacro
+    let selectedSimMode = null; 
+    let selectedSimLesson = 'all';
+    let simSession = { q: [], idx: 0, score: 0, mistakes: {} };
 
-    init();
+    // --- TECLADO ESC ---
+    document.addEventListener('keydown', (e) => {
+        if(e.key === 'Escape') {
+            closeSimModal(); closeConfig(); showList();
+        }
+    });
 
-    // --- UTILS ---
-    function showToast(message, type = 'info') {
-        const area = document.getElementById('notificationArea');
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        let icon = type === 'success' ? '✔' : (type === 'error' ? '✖' : 'ℹ');
-        toast.innerHTML = `<div style="font-size:1.2rem; color:inherit;">${icon}</div><div class="toast-content"><strong>${type==='error'?'Error':(type==='success'?'Éxito':'Info')}</strong><span>${message}</span></div>`;
-        area.appendChild(toast);
-        setTimeout(() => { toast.style.animation = 'fadeOutToast 0.4s forwards'; setTimeout(() => toast.remove(), 400); }, 3000);
-    }
-
-    // --- CONEXIÓN ---
-    async function init() {
-        setSyncStatus('active', 'Conectando...');
+    window.onload = async () => {
+        updateUILabels();
         try {
-            const req = await fetch(API_URL, { headers: { 'X-Master-Key': API_KEY } });
-            if(!req.ok) throw new Error();
-            const data = await req.json();
-            // Validación de base de datos nueva
-            if(Array.isArray(data.record)) { database = data.record; } else { database = []; }
-            document.getElementById('loadingView').style.display = 'none';
+            const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { headers: {'X-Master-Key': API_KEY} });
+            const data = await res.json();
+            db = Array.isArray(data.record) ? data.record : [];
+            document.getElementById('loader').style.display = 'none';
             showList();
-            setSyncStatus('online', 'En línea');
-        } catch (e) {
-            document.getElementById('loadingView').innerHTML = `<h2 style="color:#c62828">Error de Conexión</h2><p>Verifique internet.</p>`;
-            setSyncStatus('error', 'Error');
-        }
+        } catch(e) { alert('Error cargando datos'); }
+    };
+
+    async function sync() {
+        showToast('Sincronizando...', 'info');
+        await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+            method: 'PUT', headers: {'Content-Type':'application/json', 'X-Master-Key':API_KEY}, body: JSON.stringify(db)
+        });
+        showToast('Datos guardados', 'success');
     }
 
-    async function syncCloud() {
-        setSyncStatus('active', 'Guardando...');
-        try {
-            const req = await fetch(API_URL, { 
-                method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY }, body: JSON.stringify(database) 
-            });
-            if(!req.ok) throw new Error();
-            setSyncStatus('online', 'Guardado'); setTimeout(() => setSyncStatus('online', 'En línea'), 2000); return true;
-        } catch(e) { 
-            showToast('Fallo al sincronizar con la nube.', 'error'); setSyncStatus('error', 'Sin guardar'); return false; 
-        }
+    /* --- CONFIG --- */
+    window.openConfig = () => {
+        document.getElementById('configModal').classList.add('open');
+        document.getElementById('cfgM1').value = moduleNames.m1;
+        document.getElementById('cfgM2').value = moduleNames.m2;
+        document.getElementById('cfgM3').value = moduleNames.m3;
+    }
+    window.closeConfig = () => document.getElementById('configModal').classList.remove('open');
+    
+    window.saveConfig = () => {
+        moduleNames.m1 = document.getElementById('cfgM1').value || "M1";
+        moduleNames.m2 = document.getElementById('cfgM2').value || "M2";
+        moduleNames.m3 = document.getElementById('cfgM3').value || "M3";
+        localStorage.setItem('esbas_modules', JSON.stringify(moduleNames));
+        updateUILabels();
+        closeConfig();
+        showToast("Configuración guardada", 'success');
+        if(document.getElementById('listView').classList.contains('active')) renderGrid();
     }
 
-    function setSyncStatus(state, text) {
-        document.getElementById('syncDot').className = `sync-dot ${state}`; document.getElementById('syncText').innerText = text;
+    function updateUILabels() {
+        // Stats
+        document.getElementById('statLblM1').innerText = moduleNames.m1;
+        document.getElementById('statLblM2').innerText = moduleNames.m2;
+        
+        // Form Select
+        const sel = document.getElementById('inpMod');
+        sel.innerHTML = `<option value="m1">${moduleNames.m1}</option><option value="m2">${moduleNames.m2}</option><option value="m3">${moduleNames.m3}</option>`;
+        
+        // Sim Modal Labels
+        document.getElementById('lblSimM1').innerText = moduleNames.m1;
+        document.getElementById('lblSimM2').innerText = moduleNames.m2;
+        document.getElementById('lblSimM3').innerText = moduleNames.m3;
     }
 
-    // --- NAVEGACIÓN ---
+    /* --- NAV --- */
     function switchView(id) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        document.getElementById(id).classList.add('active'); window.scrollTo({ top: 0, behavior: 'smooth' });
+        document.getElementById(id).classList.add('active');
+        window.scrollTo(0, 0);
     }
-    function showList() { document.getElementById('loadingView').style.display = 'none'; document.getElementById('confettiArea').innerHTML=''; document.getElementById('confettiArea').style.display='none'; switchView('listView'); updateDashboard(); editId = null; }
-    function showCreate() { switchView('createView'); resetForm(); }
-    
-    // --- MODAL ---
-    function openMissionModal() { 
-        document.getElementById('missionModal').classList.add('open'); 
-        selectSimModule('all', document.querySelector('.mod-card[data-mod="all"]'));
-        document.getElementById('allLessonsSwitch').checked = true; toggleLessonInputs();
-    }
-    function closeMissionModal() { document.getElementById('missionModal').classList.remove('open'); }
-    function selectSimModule(mod, el) {
-        currentSimMod = mod; document.querySelectorAll('.mod-card').forEach(c => c.classList.remove('selected')); el.classList.add('selected');
-    }
-    function toggleLessonInputs() {
-        const isAll = document.getElementById('allLessonsSwitch').checked;
-        const area = document.getElementById('lessonInputsArea');
-        if(isAll) area.classList.remove('show'); else area.classList.add('show');
-    }
+    function showList() { switchView('listView'); renderGrid(); }
+    function showCreate() { switchView('formView'); resetForm(); }
 
-    // --- DASHBOARD (FLIP CARDS IMPLEMENTATION) ---
-    function updateDashboard() {
-        const container = document.getElementById('cardsContainer'); const playBtn = document.getElementById('nav-play-btn');
-        let m1=0, m2=0, m3=0; database.forEach(c => { if(c.module==='m1')m1++; else if(c.module==='m2')m2++; else if(c.module==='m3')m3++; });
-        document.getElementById('statM1').innerText = m1; document.getElementById('statM2').innerText = m2; document.getElementById('statM3').innerText = m3;
-        container.innerHTML = '';
-        if(database.length === 0) { document.getElementById('emptyState').style.display = 'block'; playBtn.style.display = 'none'; }
-        else {
-            document.getElementById('emptyState').style.display = 'none'; playBtn.style.display = 'inline-flex';
-            database.forEach((c, i) => {
-                let color = '#333', modText = 'GEN', backColor = '#b71c1c';
-                if(c.module==='m1'){color='var(--mod1-color)';modText='M1';backColor='var(--mod1-color)';} 
-                if(c.module==='m2'){color='var(--mod2-color)';modText='M2';backColor='var(--mod2-color)';} 
-                if(c.module==='m3'){color='var(--mod3-color)';modText='M3';backColor='var(--mod3-color)';}
-                
-                const correctText = c.options[c.correctIndex];
-                
-                // Estructura FLIP CARD
-                const div = document.createElement('div'); 
-                div.className = 'flashcard-wrapper';
-                div.style.animation = `fadeIn 0.5s ease forwards ${i*0.05}s`;
-                div.style.opacity = '0'; // For animation
+    /* --- GRID --- */
+    function renderGrid() {
+        const grid = document.getElementById('cardGrid');
+        grid.innerHTML = '';
+        
+        let stats = { total: db.length, m1:0, m2:0, m3:0 };
+        db.forEach(i => { if(stats[i.module] !== undefined) stats[i.module]++; });
+        document.getElementById('statTotal').innerText = stats.total;
+        document.getElementById('statM1').innerText = stats.m1;
+        document.getElementById('statM2').innerText = stats.m2;
 
-                div.innerHTML = `
-                    <div class="flip-box">
-                        <div class="flip-front" style="border-left-color:${color}">
-                            <div style="margin-bottom:15px;"><span class="meta-badge">${modText}</span> <span class="meta-badge" style="background:#f9f9f9; border:1px solid #eee;">Lec. ${c.lesson||'-'}</span></div>
-                            <div class="q-text">${c.question}</div>
+        if(db.length === 0) { document.getElementById('emptyMsg').style.display='block'; return; }
+        document.getElementById('emptyMsg').style.display='none';
+
+        const sorted = [...db].sort((a,b) => a.id - b.id);
+
+        sorted.forEach((item, index) => {
+            let bg='#F3F4F6', txt='#374151', lbl='GEN', iconPath='';
+            if(item.module==='m1'){ 
+                bg='#FEF2F2'; txt='#B91C1C'; lbl=moduleNames.m1; 
+                iconPath='<path d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />';
+            }
+            if(item.module==='m2'){ 
+                bg='#ECFDF5'; txt='#047857'; lbl=moduleNames.m2; 
+                iconPath='<path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />';
+            }
+            if(item.module==='m3'){ 
+                bg='#FFFBEB'; txt='#B45309'; lbl=moduleNames.m3; 
+                iconPath='<path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />';
+            }
+
+            const el = document.createElement('div');
+            el.className = 'card-wrapper';
+            el.style.animationDelay = `${index * 0.05}s`;
+            el.innerHTML = `
+                <div class="card-inner">
+                    <div class="card-face face-front">
+                        <div class="card-header">
+                            <span class="card-badge" style="background:${bg}; color:${txt};">
+                                <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24">${iconPath}</svg>
+                                ${lbl}
+                            </span>
+                            <span class="card-lec">Lecc. ${item.lesson}</span>
                         </div>
-                        <div class="flip-back" style="background-color:${backColor}">
-                            <div class="a-label">Respuesta Correcta</div>
-                            <div class="a-text">${correctText}</div>
+                        <div class="card-q">${item.question}</div>
+                    </div>
+                    <div class="card-face face-back">
+                        <div style="font-size:0.75rem; text-transform:uppercase; opacity:0.6;">Respuesta</div>
+                        <div style="font-size:1.1rem; font-weight:700; color:#F59E0B; margin-top:8px;">
+                            ${item.options[item.correctIndex] || '?'}
                         </div>
                     </div>
-                    
-                    <div class="action-bar">
-                        <button onclick="editCard(${c.id})" class="btn-icon" title="Editar"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
-                        <button onclick="deleteCard(${c.id})" class="btn-icon" style="color:#d32f2f" title="Eliminar"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>
+                </div>
+                <div class="card-actions" onmouseenter="blockFlip(this)" onmouseleave="unblockFlip(this)">
+                    <div class="action-icon" onclick="prepareEdit(${item.id})" title="Editar">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                     </div>
-                `; 
-                container.appendChild(div);
-            });
-        }
+                    <div class="action-icon delete" onclick="deleteItem(${item.id})" title="Eliminar">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </div>
+                </div>
+            `;
+            grid.appendChild(el);
+        });
+    }
+    window.blockFlip = (el) => el.parentElement.classList.add('hover-blocked');
+    window.unblockFlip = (el) => el.parentElement.classList.remove('hover-blocked');
+
+    /* --- FORM --- */
+    function addOpt(val='', checked=false) {
+        const div = document.createElement('div');
+        div.className = 'opt-row';
+        div.innerHTML = `
+            <input type="radio" name="correct" style="width:20px; height:20px; accent-color:var(--primary);" ${checked?'checked':''}>
+            <input type="text" class="input opt-val" value="${val}" placeholder="Opción">
+            <button onclick="this.parentElement.remove()" style="border:none; background:none; color:#EF4444; cursor:pointer;">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        `;
+        document.getElementById('optList').appendChild(div);
     }
 
-    // --- FORMULARIOS ---
-    function addOptionInput(val='', checked=false) {
-        const wrap = document.createElement('div'); wrap.style.display='flex'; wrap.style.alignItems='center'; wrap.style.marginBottom='15px';
-        wrap.innerHTML = `<input type="radio" name="correctOpt" class="custom-radio" ${checked?'checked':''}><input type="text" class="opt-val" value="${val}" style="margin-bottom:0; background:white;" placeholder="Alternativa..."><button onclick="this.parentElement.remove()" class="btn-icon" style="color:#d32f2f; margin-left:10px;"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>`; 
-        document.getElementById('optionsList').appendChild(wrap);
-    }
     function resetForm() {
-        document.getElementById('moduleSelect').value = 'm1'; document.getElementById('lessonInput').value = ''; document.getElementById('questionInput').value = '';
-        document.getElementById('optionsList').innerHTML = ''; addOptionInput(); addOptionInput();
-        const btn = document.getElementById('btnSave'); btn.disabled = false; btn.style.opacity = '1'; document.getElementById('saveLoader').style.display='none'; document.getElementById('saveText').innerText='Guardar Registro';
+        document.getElementById('formTitle').innerText = 'Nuevo Registro';
+        document.getElementById('btnSave').innerText = 'Guardar';
+        document.getElementById('inpMod').value = 'm1';
+        document.getElementById('inpLec').value = '';
+        document.getElementById('inpQ').value = '';
+        document.getElementById('optList').innerHTML = '';
+        addOpt(); addOpt();
     }
-    async function saveCard() {
-        const mod = document.getElementById('moduleSelect').value; const lesson = parseInt(document.getElementById('lessonInput').value); const q = document.getElementById('questionInput').value.trim();
-        let options=[], correctIndex=-1;
-        document.querySelectorAll('#optionsList > div').forEach((row, i) => { const txt = row.querySelector('.opt-val').value.trim(); if(txt){ options.push(txt); if(row.querySelector('input').checked) correctIndex=options.length-1; } });
 
-        if(!lesson || isNaN(lesson)) { showToast('Falta número de lección', 'error'); return; }
-        if(!q || options.length<2 || correctIndex===-1) { showToast('Datos incompletos', 'error'); return; }
+    window.prepareEdit = (id) => {
+        const item = db.find(x => x.id === id);
+        if(!item) return;
+        editId = id;
+        switchView('formView');
+        document.getElementById('formTitle').innerText = 'Editar Registro';
+        document.getElementById('btnSave').innerText = 'Actualizar';
+        document.getElementById('inpMod').value = item.module;
+        document.getElementById('inpLec').value = item.lesson;
+        document.getElementById('inpQ').value = item.question;
+        document.getElementById('optList').innerHTML = '';
+        item.options.forEach((opt, i) => addOpt(opt, i===item.correctIndex));
+    }
 
-        const btn = document.getElementById('btnSave'); btn.disabled = true; btn.style.opacity = '0.7'; document.getElementById('saveLoader').style.display='inline-block'; document.getElementById('saveText').innerText='Guardando...';
+    window.saveData = async () => {
+        const mod = document.getElementById('inpMod').value;
+        const lec = document.getElementById('inpLec').value;
+        const q = document.getElementById('inpQ').value;
+        let opts = [], correctIdx = -1, radioIdx = -1;
+        document.querySelectorAll('input[name="correct"]').forEach((r, i) => { if(r.checked) radioIdx = i; });
+        document.querySelectorAll('.opt-val').forEach(inp => { if(inp.value.trim()) opts.push(inp.value.trim()); });
+        if(radioIdx > -1 && radioIdx < opts.length) correctIdx = radioIdx;
 
-        try {
-            const record = { id: editId||Date.now(), module: mod, lesson, question: q, options, correctIndex };
-            let tempDB = [...database];
-            if(editId) { const idx = tempDB.findIndex(c=>c.id===editId); if(idx !== -1) tempDB[idx] = record; else tempDB.push(record); } else { tempDB.push(record); }
-            database = tempDB;
-            const success = await syncCloud();
-            if(success) { showToast('Guardado con éxito', 'success'); showList(); } else { throw new Error("Sync failed"); }
-        } catch(e) {
-            btn.disabled = false; btn.style.opacity = '1'; document.getElementById('saveLoader').style.display='none'; document.getElementById('saveText').innerText='Reintentar'; showToast('Error al guardar', 'error');
+        if(!lec || !q || opts.length < 2 || correctIdx === -1) { alert('Complete los datos'); return; }
+
+        const record = { id: editId || Date.now(), module: mod, lesson: parseInt(lec), question: q, options: opts, correctIndex: correctIdx };
+        let temp = [...db];
+        if(editId) {
+            const idx = temp.findIndex(x => x.id === editId);
+            if(idx > -1) temp[idx] = record;
+        } else { temp.push(record); }
+        db = temp;
+        await sync();
+        showList();
+    }
+
+    window.deleteItem = async (id) => {
+        if(confirm('¿Eliminar?')) {
+            db = db.filter(x => x.id !== id);
+            await sync();
+            renderGrid();
         }
     }
-    function editCard(id) {
-        const c = database.find(x=>x.id===id); if(!c) return; editId=id; switchView('createView');
-        document.getElementById('moduleSelect').value=c.module; document.getElementById('lessonInput').value=c.lesson||''; document.getElementById('questionInput').value=c.question;
-        const list=document.getElementById('optionsList'); list.innerHTML=''; c.options.forEach((opt,i)=>addOptionInput(opt,i===c.correctIndex));
-    }
-    async function deleteCard(id) { if(confirm('¿Eliminar registro?')) { database=database.filter(x=>x.id!==id); await syncCloud(); updateDashboard(); showToast('Registro eliminado', 'info'); } }
 
-    // --- SIMULADOR & RESULTADOS ---
-    function launchSimulation() {
-        const mod = currentSimMod;
-        const allLessons = document.getElementById('allLessonsSwitch').checked;
-        const min = document.getElementById('simMinLesson').value;
-        const max = document.getElementById('simMaxLesson').value;
+    /* --- SIMULADOR AVANZADO --- */
+    window.openSimModal = () => {
+        document.getElementById('simModal').classList.add('open');
+        selectSimMode(null, null); // Reset UI
+    }
+    window.closeSimModal = () => document.getElementById('simModal').classList.remove('open');
+
+    window.selectSimMode = (mode, el) => {
+        selectedSimMode = mode;
+        selectedSimLesson = 'all'; // Reset lesson filter
+
+        // Visual Selection
+        document.querySelectorAll('.sim-option-box').forEach(b => b.classList.remove('selected'));
+        if(el) el.classList.add('selected');
         
-        let candidates = (mod==='all') ? [...database] : database.filter(c => c.module === mod);
-        if(!allLessons) {
-            if(min !== '' && max !== '') candidates = candidates.filter(c => c.lesson >= parseInt(min) && c.lesson <= parseInt(max));
-            else if(min !== '') candidates = candidates.filter(c => c.lesson >= parseInt(min));
+        const selectorBox = document.getElementById('lessonSelectorBox');
+        const container = document.getElementById('lessonButtonsContainer');
+        container.innerHTML = '';
+
+        // Solo mostrar selector si no es "General" y si hay un modo seleccionado
+        if(mode && mode !== 'all') {
+            selectorBox.style.opacity = '1';
+            selectorBox.style.pointerEvents = 'auto';
+
+            // 1. Encontrar lecciones únicas para este módulo
+            const lessons = [...new Set(db.filter(x => x.module === mode).map(x => x.lesson))].sort((a,b) => a-b);
+
+            if(lessons.length === 0) {
+                container.innerHTML = '<span style="font-size:0.8rem; color:#991B1B;">No hay preguntas registradas en este módulo.</span>';
+            } else {
+                // 2. Crear botón "TODO"
+                const allBtn = document.createElement('div');
+                allBtn.className = 'lesson-btn all-btn active'; // Activo por defecto
+                allBtn.innerText = 'TODO';
+                allBtn.onclick = () => selectLesson('all', allBtn);
+                container.appendChild(allBtn);
+
+                // 3. Crear botones numéricos
+                lessons.forEach(l => {
+                    const btn = document.createElement('div');
+                    btn.className = 'lesson-btn';
+                    btn.innerText = l;
+                    btn.onclick = () => selectLesson(l, btn);
+                    container.appendChild(btn);
+                });
+            }
+
+        } else {
+            selectorBox.style.opacity = '0.5';
+            selectorBox.style.pointerEvents = 'none';
+        }
+    }
+
+    window.selectLesson = (lesson, el) => {
+        selectedSimLesson = lesson;
+        // Visual Update
+        document.querySelectorAll('.lesson-btn').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+    }
+
+    window.startSimAction = () => {
+        if(!selectedSimMode) { showToast('Selecciona un área', 'error'); return; }
+        
+        let pool = db;
+        // Filtrar por módulo
+        if(selectedSimMode !== 'all') {
+            pool = db.filter(x => x.module === selectedSimMode);
+            // Filtrar por lección específica si no es 'all'
+            if(selectedSimLesson !== 'all') {
+                pool = pool.filter(x => x.lesson == selectedSimLesson);
+            }
         }
         
-        if(candidates.length === 0) { showToast('No hay preguntas con esos filtros', 'error'); return; }
-        session.queue = candidates.sort(()=>Math.random()-0.5); session.index = 0; session.score = 0;
-        closeMissionModal(); switchView('studyView'); renderSlide();
+        if(pool.length === 0) { 
+            showToast('No hay preguntas disponibles', 'error'); 
+            return; 
+        }
+
+        simSession.q = pool.sort(() => Math.random() - 0.5);
+        simSession.idx = 0;
+        simSession.score = 0;
+        simSession.mistakes = { m1: 0, m2: 0, m3: 0 };
+        
+        closeSimModal();
+        switchView('simView');
+        renderSim();
     }
 
-    function renderSlide() {
-        const c = session.queue[session.index]; const area = document.getElementById('studyArea');
-        let modName=c.module==='m1'?'Incendios':(c.module==='m2'?'Médicos':'Matpel'); let modColor=c.module==='m1'?'var(--mod1-color)':(c.module==='m2'?'var(--mod2-color)':'var(--mod3-color)');
-        document.getElementById('simBadge').innerText = `${modName} | Lec. ${c.lesson}`; document.getElementById('simBadge').style.background = modColor;
-        document.getElementById('simProgressText').innerText = `${session.index+1}/${session.queue.length}`;
-        document.getElementById('progressBar').style.width = ((session.index+1)/session.queue.length)*100+'%';
-        document.getElementById('controlsArea').style.visibility='hidden'; document.getElementById('controlsArea').style.opacity='0';
-        area.innerHTML = `<h2 style="font-size:1.8rem; text-align:center; margin: 40px 0 50px; color:var(--text-dark); font-weight:700;">${c.question}</h2><div id="simOpts"></div>`;
-        const cont = document.getElementById('simOpts');
-        c.options.forEach((opt, i) => {
-            const btn = document.createElement('div'); btn.className = 'sim-option';
-            btn.innerHTML = `<div class="sim-option-letter">${String.fromCharCode(65+i)}</div><div style="flex:1;">${opt}</div>`;
-            btn.onclick = () => checkAns(btn, i, c.correctIndex); cont.appendChild(btn);
+    function renderSim() {
+        const item = simSession.q[simSession.idx];
+        document.getElementById('simQ').innerText = item.question;
+        document.getElementById('simCount').innerText = `${simSession.idx + 1} / ${simSession.q.length}`;
+        document.getElementById('simNext').style.display = 'none';
+        
+        const div = document.getElementById('simOpts');
+        div.innerHTML = '';
+        item.options.forEach((opt, i) => {
+            const btn = document.createElement('div');
+            btn.className = 'option-card';
+            btn.innerHTML = `<div style="font-weight:700; color:#9CA3AF;">${String.fromCharCode(65+i)}</div><div>${opt}</div>`;
+            btn.onclick = () => checkSimAnswer(btn, i, item);
+            div.appendChild(btn);
         });
     }
 
-    function checkAns(el, idx, correct) {
-        if(el.classList.contains('locked')) return;
-        document.querySelectorAll('.sim-option').forEach(o => o.classList.add('locked'));
-        if(idx === correct) { el.classList.add('correct'); session.score++; showToast('¡Correcto!', 'success'); } 
-        else { el.classList.add('wrong'); document.querySelectorAll('.sim-option')[correct].classList.add('correct'); showToast('Incorrecto', 'error'); }
-        document.getElementById('controlsArea').style.visibility='visible'; document.getElementById('controlsArea').style.opacity='1';
+    function checkSimAnswer(btn, i, item) {
+        if(document.querySelector('.option-card.correct')) return;
+        const parent = document.getElementById('simOpts');
+        if(i === item.correctIndex) {
+            btn.classList.add('correct');
+            simSession.score++;
+            showToast('¡Correcto!', 'success');
+        } else {
+            btn.classList.add('wrong');
+            parent.children[item.correctIndex].classList.add('correct');
+            showToast('Incorrecto', 'error');
+            if(simSession.mistakes[item.module] !== undefined) simSession.mistakes[item.module]++;
+        }
+        document.getElementById('simNext').style.display = 'block';
     }
 
-    function nextCard() { if(session.index < session.queue.length - 1) { session.index++; renderSlide(); } else { finishSimulation(); } }
-
-    function finishSimulation() {
-        const total = session.queue.length;
-        const score = session.score;
-        const percentage = Math.round((score / total) * 100);
-
-        document.getElementById('resTotal').innerText = total;
-        document.getElementById('resCorrect').innerText = score;
-        document.getElementById('resWrong').innerText = total - score;
-        
-        const titleEl = document.getElementById('resTitle');
-        const msgEl = document.getElementById('resMsg');
-        const ring = document.getElementById('resRing');
-
-        let color = '#333';
-        if(percentage === 100) { titleEl.innerText = "¡Misión Impecable!"; msgEl.innerText = "Dominio absoluto del tema."; color = '#43a047'; triggerConfetti(); }
-        else if(percentage >= 80) { titleEl.innerText = "¡Excelente Trabajo!"; msgEl.innerText = "Estás listo para el servicio."; color = '#43a047'; triggerConfetti(); }
-        else if(percentage >= 60) { titleEl.innerText = "Buen Esfuerzo"; msgEl.innerText = "Repasa las fallas y vuelve a intentar."; color = '#fb8c00'; }
-        else { titleEl.innerText = "Se Requiere Refuerzo"; msgEl.innerText = "No te rindas, vuelve a estudiar."; color = '#e53935'; }
-
-        switchView('resultsView');
-
-        const radius = ring.r.baseVal.value;
-        const circumference = radius * 2 * Math.PI;
-        ring.style.strokeDasharray = `${circumference} ${circumference}`;
-        ring.style.strokeDashoffset = circumference;
-        ring.style.stroke = color;
-        const offset = circumference - (percentage / 100) * circumference;
-        setTimeout(() => { ring.style.strokeDashoffset = offset; }, 100);
-        animateValue("resScore", 0, percentage, 1500);
-    }
-
-    function animateValue(id, start, end, duration) {
-        const obj = document.getElementById(id);
-        let startTimestamp = null;
-        const step = (timestamp) => {
-            if (!startTimestamp) startTimestamp = timestamp;
-            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-            obj.innerHTML = Math.floor(progress * (end - start) + start) + "%";
-            if (progress < 1) window.requestAnimationFrame(step);
-        };
-        window.requestAnimationFrame(step);
-    }
-
-    function triggerConfetti() {
-        const area = document.getElementById('confettiArea');
-        area.style.display = 'block';
-        const colors = ['#f44336', '#2196f3', '#ffeb3b', '#4caf50'];
-        for(let i=0; i<50; i++) {
-            const conf = document.createElement('div');
-            conf.className = 'confetti';
-            conf.style.left = Math.random() * 100 + 'vw';
-            conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-            conf.style.animationDuration = (Math.random() * 3 + 2) + 's';
-            area.appendChild(conf);
+    window.nextSim = () => {
+        if(simSession.idx < simSession.q.length - 1) {
+            simSession.idx++;
+            renderSim();
+        } else {
+            showResults();
         }
     }
+
+    function showResults() {
+        switchView('resultView');
+        const total = simSession.q.length;
+        const score = simSession.score;
+        const pct = Math.round((score / total) * 100);
+        
+        document.getElementById('finalScore').innerText = pct + "%";
+        document.getElementById('resOk').innerText = score;
+        document.getElementById('resFail').innerText = total - score;
+        
+        const circle = document.getElementById('resCircle');
+        if(pct >= 80) circle.style.borderColor = "#10B981";
+        else if(pct >= 60) circle.style.borderColor = "#F59E0B";
+        else circle.style.borderColor = "#B91C1C";
+        
+        let msg = "", advice = "";
+        if(pct === 100) msg = "¡Perfecto!";
+        else if(pct >= 80) msg = "¡Excelente!";
+        else if(pct >= 60) msg = "Aprobado";
+        else msg = "Repasar";
+        document.getElementById('resMsg').innerText = msg;
+        
+        if(total - score > 0) {
+            let maxErr = -1, weakMod = "";
+            for (const [mod, count] of Object.entries(simSession.mistakes)) {
+                if(count > maxErr) { maxErr = count; weakMod = mod; }
+            }
+            if(maxErr > 0) advice = `Recomendación: Repasar <strong>${moduleNames[weakMod]}</strong>`;
+            else advice = "Revisar errores puntuales.";
+        } else {
+            advice = "¡Listo para el servicio!";
+        }
+        document.getElementById('resAdvice').innerHTML = advice;
+    }
+
+    function showToast(msg, type='info') {
+        const t = document.getElementById('toast');
+        t.className = `toast ${type}`;
+        document.getElementById('toastMsg').innerText = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 2000);
+    }
+    
+    // CSS extra
+    const styleSheet = document.createElement("style");
+    styleSheet.innerText = `
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .hover-blocked .card-inner { transform: rotateY(0deg) !important; }
+    `;
+    document.head.appendChild(styleSheet);
 </script>
 </body>
 </html>
